@@ -11,7 +11,11 @@ enum class EDirections
     YNeg = 1 << 3,
     All = XPos|XNeg|YNeg|YPos,
 	X = XNeg|XPos,
-	Y = YNeg|YPos
+	Y = YNeg|YPos,
+	PP = XPos|YPos,
+	PN = XPos|YNeg,
+	NN = XNeg|YNeg,
+	NP = XNeg|YPos
 };
 
 FORCEINLINE bool IncludesDirection(EDirections Value, EDirections Mask)

@@ -62,9 +62,11 @@ class MARKETPLACECONTENT_API ARoadsGameModeBase : public AGameModeBase
 
 	void CreateTiles();
 
-	void CreateJunctions();
+	void CreateJunctions(const TArray<FGridTile>& Tiles);
 
-	void CreateLines();
+	void CreateLines(const TArray<FGridTile>& Tiles);
+
+	void CreateDirections(const TArray<FGridTile>& Tiles);
 
 	void DrawTileDirections();
 

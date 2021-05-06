@@ -40,5 +40,13 @@
 			"Name": "PythonScriptPlugin",
 			"Enabled": true
 		}
+	],
+	"TargetPlatforms": [
+		"Android",
+		"AllDesktop",
+		"IOS",
+		"LinuxNoEditor",
+		"MacNoEditor",
+		"WindowsNoEditor"
 	]
 }
