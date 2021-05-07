@@ -10,7 +10,7 @@
 /**
  * 
  */
-USTRUCT()
+USTRUCT(BlueprintType)
 struct MARKETPLACECONTENT_API FGridJunction : public FGridTilesSet
 {
 	GENERATED_BODY()

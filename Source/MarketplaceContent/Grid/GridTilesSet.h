@@ -6,13 +6,12 @@
 
 #include "GridTile.h"
 
-
 #include "GridTilesSet.generated.h"
 
 /**
  * 
  */
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FGridTilesSet
 {
 	GENERATED_BODY()
@@ -25,12 +24,12 @@ struct FGridTilesSet
 		return Items.Num() == 0;
 	}
 
-	FORCEINLINE bool Contains(const FIntVector& TileId) const
+	FORCEINLINE bool Contains(const FIntVector& TileId) const 
 	{
 		return Items.Contains(TileId);
 	}
 
-	FORCEINLINE bool Contains(const FGridTile& Tile) const
+	FORCEINLINE bool Contains(const FGridTile& Tile) const 
 	{
 		return Items.Contains(Tile.Id);
 	}

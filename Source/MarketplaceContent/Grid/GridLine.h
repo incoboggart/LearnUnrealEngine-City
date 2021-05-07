@@ -12,27 +12,46 @@
  * 
  */
 USTRUCT(BlueprintType)
-struct MARKETPLACECONTENT_API FGridLine : public FGridTilesSet
+struct MARKETPLACECONTENT_API FGridLine
 {
 	GENERATED_BODY()
 
-	FORCEINLINE bool BeginsWith(const FIntVector& TileId)
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+	FIntVector Min;
+
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
+	FIntVector Max;
+
+	FGridLine() :
+	Min(FIntVector()),
+	Max(FIntVector())
+	{  }
+
+	FGridLine(const FIntVector P1, const FIntVector P2)
 	{
-		if(IsEmpty())
-		{
-			return false;
-		}
+		Min = FGridMath::GetMin(P1, P2);
+		Max = FGridMath::GetMax(P1, P2);
+	}
 
-		if(TileId == Items[0])
-		{
-			return true;
-		}
+	FORCEINLINE bool IsEmpty() const
+	{
+		return Min == Max;
+	};
 
-		if(TileId == Items.Last())
-		{
-			return true;
-		}
+	FORCEINLINE bool Contains(const FIntVector& TileId) const
+	{
+		return Min.X >= TileId.X
+			&& Min.Y >= TileId.Y
+			&& Min.Z >= TileId.Z 
+			&& Max.X <= TileId.X
+			&& Max.Y <= TileId.Y
+			&& Max.Z <= TileId.Z;
+	}
 
-		return false;
+	FORCEINLINE int32 Num() const
+	{
+		return (Min.X == Max.X
+			? Max.Y - Min.Y
+			: Max.X - Min.X) + 1;
 	}
 };

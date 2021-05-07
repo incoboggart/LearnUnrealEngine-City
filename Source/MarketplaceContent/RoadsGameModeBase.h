@@ -5,12 +5,11 @@
 #include "CoreMinimal.h"
 
 
-
+#include "FTilesGrid.h"
 #include "GridJunction.h"
 #include "GridLine.h"
 #include "GridTile.h"
 #include "Chaos/AABBTree.h"
-#include "Grid/EDirections.h"
 #include "GameFramework/GameModeBase.h"
 #include "RoadsGameModeBase.generated.h"
 
@@ -37,40 +36,26 @@ class MARKETPLACECONTENT_API ARoadsGameModeBase : public AGameModeBase
 	UPROPERTY(EditAnywhere)
 	FColor DrawJunctionsColor;
 
-	UPROPERTY(VisibleAnywhere)
-	TMap<FIntVector, FGridTile> TilesMap;
+	UPROPERTY(EditAnywhere)
+	bool DrawLinesEnabled;
 
-	UPROPERTY(VisibleAnywhere)
-	TArray<FGridJunction> Junctions;
+	UPROPERTY(EditAnywhere)
+	FColor DrawLinesColor;
 
-	UPROPERTY(VisibleAnywhere)
-	TArray<FGridLine> Lines;
+	FTilesGrid Grid;
 
 	ARoadsGameModeBase();
 
 	virtual void BeginPlay() override;
 
-	
 	virtual void Tick(float DeltaSeconds) override;
-
-	FORCEINLINE bool IsJunctionTile(const FGridTile& Tile)
-	{
-		return Junctions.FindByPredicate([&](FGridJunction j){return j.Contains(Tile);});
-	}
 
 	virtual bool ShouldTickIfViewportsOnly() const override;
 
-	void CreateTiles();
-
-	void CreateJunctions(const TArray<FGridTile>& Tiles);
-
-	void CreateLines(const TArray<FGridTile>& Tiles);
-
-	void CreateDirections(const TArray<FGridTile>& Tiles);
-
-	void DrawTileDirections();
-
-	void DrawJunctions();
+private:
+	void DrawTileDirections() const;
+	void DrawJunctions() const;
+	void DrawLines() const;
 };
 
 
