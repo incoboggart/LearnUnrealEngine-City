@@ -7,7 +7,8 @@
 #include "Chaos/AABBTree.h"
 #include "UObject/NoExportTypes.h"
 #include "EDirections.h"
-#include "FGridMath.h"
+#include "GridMath.h"
+#include "GridDirections.h"
 
 #include "GridTile.generated.h"
 
@@ -22,7 +23,11 @@ struct MARKETPLACECONTENT_API FGridTile
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	FIntVector Id;
 
-	EDirections LocalDirections;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int32 Rotation;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TArray<FIntVector> LocalDirections;
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
 	FIntVector ActorRotation;
@@ -30,52 +35,41 @@ struct MARKETPLACECONTENT_API FGridTile
 	UPROPERTY(VisibleAnywhere)
 	AActor* Actor;
 
-	FIntVector GetNeighbourId(const EDirections Directions) const;
+	FORCEINLINE FRotator GetActorRotation() const
+	{
+		return FGridMath::ActorRotation(Rotation);
+	}
 
 	FIntVector GetNeighbourId(const FIntVector Direction) const
 	{
 		return FIntVector(Id.X + Direction.X, Id.Y + Direction.Y, Id.Z);
 	}
 
-	FORCEINLINE void GetLocalDirectionsSplit(TArray<EDirections>& Array) const
+	FORCEINLINE bool IsStraightLine() const
 	{
-		SplitDirections(LocalDirections, Array);
+		return FGridDirections::IsStraight(LocalDirections);
 	}
 
-	FORCEINLINE FVector GetWorldDirection(const EDirections Direction) const
+	FORCEINLINE bool IsOrthoTurn() const
 	{
-		const FIntVector Dir = GetWorldDirectionInt(Direction);
-		return FVector(Dir.X, Dir.Y, Dir.Z);
+		return FGridDirections::IsOrthoTurn(LocalDirections);
+	}
+	
+	FORCEINLINE bool IsOrthoCross() const
+	{
+		return FGridDirections::IsOrthoCross(LocalDirections);
 	}
 
-	FORCEINLINE bool IsStraight() const
+	FORCEINLINE bool ContainsLocalDirection(const FIntVector LocalDirection) const
 	{
-		return LocalDirections == EDirections::X
-			|| LocalDirections == EDirections::Y;
+		return LocalDirections.Contains(LocalDirection);
 	}
 
-	FORCEINLINE bool ContainsDirection(const FIntVector Direction) const
+	FORCEINLINE bool ContainsAnyLocalDirection(const TArray<FIntVector>& WorldDirections) const
 	{
-#define CHECK(sym) (IncludesDirection(LocalDirections, sym) && Direction == GetWorldDirectionInt(sym)) 
-		
-		if(CHECK(EDirections::XNeg)
-			|| CHECK(EDirections::XPos)
-			|| CHECK(EDirections::YNeg)
-			|| CHECK(EDirections::YPos))
+		for (FIntVector Direction : WorldDirections)
 		{
-			return true;
-		}
-
-		return false;
-
-#undef CHECK
-	}
-
-	FORCEINLINE bool ContainsAnyDirection(const TArray<FIntVector> Directions) const
-	{
-		for (FIntVector Direction : Directions)
-		{
-			if(ContainsDirection(Direction))
+			if(ContainsLocalDirection(Direction))
 			{
 				return true;
 			}
@@ -84,26 +78,52 @@ struct MARKETPLACECONTENT_API FGridTile
 		return false;
 	}
 
-	FORCEINLINE FIntVector GetWorldDirectionInt(const EDirections Direction) const
+	FORCEINLINE bool ContainsWorldDirection(const FIntVector WorldDirection) const
 	{
-		switch (Direction)
+		return ContainsLocalDirection(GetLocalDirection(WorldDirection));
+	}
+
+	FORCEINLINE bool ContainsAnyWorldDirection(const TArray<FIntVector>& WorldDirections) const
+	{
+		for (const FIntVector WorldDirection : WorldDirections)
 		{
-		case EDirections::XPos:
-			return FGridMath::Negate(ActorRotation);
-		case EDirections::XNeg:
-			return ActorRotation;
-		case EDirections::YPos:
-			return FGridMath::Rotate(ActorRotation, false);
-		case EDirections::YNeg:
-			return FGridMath::Rotate(ActorRotation);
-		default:
-			return FIntVector(0,0,0);
+			if(ContainsWorldDirection(WorldDirection))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	FORCEINLINE void GetWorldDirections(TArray<FIntVector>& Directions, const bool ResetArray = false) const
+	{
+		if(ResetArray)
+		{
+			Directions.Reset();
+		}
+		
+		for (const FIntVector LocalDirection : LocalDirections)
+		{
+			Directions.Add(GetWorldDirection(LocalDirection));
 		}
 	}
 
-	static bool IsAllDirections(const FGridTile& Tile)
+	FORCEINLINE FIntVector GetWorldDirection(const FIntVector LocalDirection) const
 	{
-		return Tile.LocalDirections == EDirections::All; 
+		return FGridMath::Rotate(LocalDirection, Rotation);
+	}
+
+	FORCEINLINE FIntVector GetLocalDirection(const FIntVector WorldDirection) const
+	{
+		return FGridMath::Rotate(WorldDirection, -Rotation);
+	}
+	
+	
+
+	FORCEINLINE void SetWorldDirections(...)
+	{
+		
 	}
 };
 

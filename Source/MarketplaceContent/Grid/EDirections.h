@@ -28,6 +28,11 @@ FORCEINLINE bool ExcludesDirection(EDirections Value, EDirections Mask)
 	return (static_cast<int32>(Value) & static_cast<int32>(Mask)) == 0;
 }
 
+FORCEINLINE EDirections IncludeDirection(EDirections Value, EDirections Mask)
+{
+	return static_cast<EDirections>((static_cast<int32>(Value) | static_cast<int32>(Mask)));
+}
+
 FORCEINLINE void SplitDirections(const EDirections Value, TArray<EDirections>& Array)
 {
 	Array.Reset();

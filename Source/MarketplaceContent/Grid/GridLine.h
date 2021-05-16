@@ -29,8 +29,8 @@ struct MARKETPLACECONTENT_API FGridLine
 
 	FGridLine(const FIntVector P1, const FIntVector P2)
 	{
-		Min = FGridMath::GetMin(P1, P2);
-		Max = FGridMath::GetMax(P1, P2);
+		Min = FGridMath::Min(P1, P2);
+		Max = FGridMath::Max(P1, P2);
 	}
 
 	FORCEINLINE bool IsEmpty() const

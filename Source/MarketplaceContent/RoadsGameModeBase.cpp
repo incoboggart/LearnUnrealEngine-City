@@ -6,10 +6,14 @@
 
 #include "DrawDebugHelpers.h"
 #include "EngineUtils.h"
-#include "FGridMath.h"
+#include "GridMath.h"
+#include "GridDirections.h"
 #include "GridJunction.h"
 #include "GridLine.h"
+#include "GridPathfinder.h"
+#include "GridPathfinderCost.h"
 #include "GridTile.h"
+#include "SplineActor.h"
 
 ARoadsGameModeBase::ARoadsGameModeBase()
 {
@@ -18,19 +22,43 @@ ARoadsGameModeBase::ARoadsGameModeBase()
 	
 	Grid = FTilesGrid();
 	GridSize = FIntVector(500, 500, 1);
-	
+
 	DrawTileDirectionsEnabled = true;
 	DrawTileDirectionsColor = FColor::Green;
 	DrawJunctionsEnabled = true;
 	DrawJunctionsColor = FColor::Green;
 	DrawLinesEnabled = true;
 	DrawLinesColor = FColor::Green;
+
+	SplineActorClass = ASplineActor::StaticClass();
 }
 
 void ARoadsGameModeBase::BeginPlay()
 {
 	Grid.GridSize = GridSize;
 	Grid.BuildGrid(GetWorld());
+
+	BuildTestRoute();
+
+	TestSplineInstance = GetWorld()->SpawnActor<ASplineActor>(SplineActorClass);
+	if(!IsValid(TestSplineInstance))
+	{
+		return;
+	}
+
+	TArray<FVector> Points = TArray<FVector>();
+	FVector Offset = FVector(0,0,50);
+	for (const FIntVector TileId : TestRoute)
+	{
+		Points.Add(FGridMath::ToTileCenterLocation(TileId, Grid.GridSize) + Offset);
+	}
+
+	 TestSplineInstance->PopulatePoints(Points);
+	
+	auto pawn = GetWorld()->GetFirstPlayerController()->GetPawn();
+	pawn->SetActorLocation(FGridMath::ToTileCenterLocation(TestRouteStart, Grid.GridSize));
+
+	TestSplineInstance->SetActor(pawn);
 }
 
 void ARoadsGameModeBase::Tick(float DeltaSeconds)
@@ -49,6 +77,14 @@ void ARoadsGameModeBase::Tick(float DeltaSeconds)
 	{
 		DrawLines();
 	}
+
+	FIntVector TileCenter = FGridMath::ToTileCenter(TestRouteStart, Grid.GridSize);
+	FVector MarkerPosition = FVector(TileCenter.X, TileCenter.Y, 50);
+	DrawDebugSphere(GetWorld(), MarkerPosition, 60, 8, FColor::Red);
+
+	TileCenter = FGridMath::ToTileCenter(TestRouteFinish, Grid.GridSize);
+	MarkerPosition = FVector(TileCenter.X, TileCenter.Y, 50);
+	DrawDebugSphere(GetWorld(), MarkerPosition, 60, 8, FColor::Red);
 }
 
 bool ARoadsGameModeBase::ShouldTickIfViewportsOnly() const
@@ -61,29 +97,35 @@ void ARoadsGameModeBase::DrawTileDirections() const
 	const float MarkerSize = 50;
 	const FColor MarkerColor = DrawTileDirectionsColor;
 	const float AngleSize = FMath::DegreesToRadians(30);
-	TArray<EDirections> Directions = TArray<EDirections>();
+	TArray<FIntVector> Directions = TArray<FIntVector>();
 	
 	for (auto Pair : Grid.GetTilesMap())
 	{
 		const FGridTile Tile = Pair.Value;
 		const FIntVector TileCenter = FGridMath::ToTileCenter(Tile.Id, Grid.GridSize);
 		FVector MarkerPosition = FVector(TileCenter.X, TileCenter.Y, 50);
-		if(Tile.LocalDirections == EDirections::None)
+		if(FGridDirections::IsEmpty(Tile.LocalDirections))
 		{
 			DrawDebugBox(GetWorld(), MarkerPosition, FVector(MarkerSize/2), FColor::Red);
-		}		
-		if(Tile.LocalDirections == EDirections::All)
+		}
+		else if(FGridDirections::IsOrthoCross(Tile.LocalDirections))
 		{
 			DrawDebugSphere(GetWorld(), MarkerPosition, MarkerSize, 4, MarkerColor);
 		}
 		else
 		{
-			SplitDirections(Tile.LocalDirections, Directions);
-			for (EDirections Direction : Directions)
+			Tile.GetWorldDirections(Directions, true);
+			for (const FIntVector Direction : Directions)
 			{
-				FVector ConeDirection = Tile.GetWorldDirection(Direction);
+				FVector ConeDirection = -FGridMath::F(Direction);
 				DrawDebugCone(GetWorld(), MarkerPosition - ConeDirection * MarkerSize, ConeDirection, MarkerSize, AngleSize, AngleSize, 2, MarkerColor);
 			}
+			
+			// for (FIntVector Direction : Tile.LocalDirections)
+			// {
+			// 	FVector ConeDirection =  FGridMath::F(FGridMath::Rotate(Direction, Tile.Rotation));
+			// 	DrawDebugCone(GetWorld(), MarkerPosition - ConeDirection * MarkerSize, ConeDirection, MarkerSize, AngleSize, AngleSize, 2, MarkerColor);
+			// }
 		}
 	}
 }
@@ -137,6 +179,27 @@ void ARoadsGameModeBase::DrawLines() const
 			End,
 			DrawLinesColor);
 	}
+}
+
+void ARoadsGameModeBase::BuildTestRoute()
+{
+	TArray<FIntVector> Keys;
+	Grid.TileById.GenerateKeyArray(Keys);
+
+	if(TestRouteStart == FIntVector::ZeroValue)
+	{
+		TestRouteStart = Keys[FMath::RandRange(0, Keys.Num() - 1)];
+	}
+	if(TestRouteFinish == FIntVector::ZeroValue)
+	{
+		TestRouteFinish = Keys[FMath::RandRange(0, Keys.Num() - 1)];
+	}
+
+	//Error: Failed to find path from X=3 Y=-29 Z=0 to X=5 Y=-23 Z=0
+	FGridPathfinder Pathfinder = FGridPathfinder();
+	Pathfinder.Start = TestRouteStart;
+	Pathfinder.Finish = TestRouteFinish;
+	Pathfinder.FindPath(Grid, TestRoute);
 }
 
 

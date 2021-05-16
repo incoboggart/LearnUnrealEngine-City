@@ -24,7 +24,7 @@ struct FGridTilesSet
 		return Items.Num() == 0;
 	}
 
-	FORCEINLINE bool Contains(const FIntVector& TileId) const 
+	FORCEINLINE bool Contains(const FIntVector TileId) const 
 	{
 		return Items.Contains(TileId);
 	}
@@ -34,7 +34,7 @@ struct FGridTilesSet
 		return Items.Contains(Tile.Id);
 	}
 
-	FORCEINLINE void Add(const FIntVector& TileId)
+	FORCEINLINE void Add(const FIntVector TileId)
 	{
 		Items.Add(TileId);
 	}
@@ -42,5 +42,38 @@ struct FGridTilesSet
 	FORCEINLINE void Add(const FGridTile& Tile)
 	{
 		Items.Add(Tile.Id);
+	}
+
+	FORCEINLINE bool Select(TMap<FIntVector, FGridTile>& TileById, TArray<FGridTile>& Tiles)
+	{
+		for (FIntVector TileId : Items)
+		{
+			if(!TileById.Contains(TileId))
+			{
+				return false;
+			}
+
+			Tiles.Add(TileById[TileId]);
+		}
+
+		return true;
+	}
+
+	bool HasDiff(TSet<FIntVector>& Set)
+	{
+		if(Set.Num() != Items.Num())
+		{
+			return true;
+		}
+
+		for (FIntVector TileId : Items)
+		{
+			if(!Set.Contains(TileId))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 };

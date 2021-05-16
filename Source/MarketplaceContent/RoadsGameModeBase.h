@@ -5,10 +5,11 @@
 #include "CoreMinimal.h"
 
 
-#include "FTilesGrid.h"
+#include "TilesGrid.h"
 #include "GridJunction.h"
 #include "GridLine.h"
 #include "GridTile.h"
+#include "SplineActor.h"
 #include "Chaos/AABBTree.h"
 #include "GameFramework/GameModeBase.h"
 #include "RoadsGameModeBase.generated.h"
@@ -20,42 +21,63 @@ UCLASS()
 class MARKETPLACECONTENT_API ARoadsGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere)
-	FIntVector GridSize;
-
-	UPROPERTY(EditAnywhere)
+	
+public:	
+	UPROPERTY(EditAnywhere, Category="Debug")
 	bool DrawTileDirectionsEnabled;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category="Debug")
 	FColor DrawTileDirectionsColor;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category="Debug")
 	bool DrawJunctionsEnabled;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category="Debug")
 	FColor DrawJunctionsColor;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category="Debug")
 	bool DrawLinesEnabled;
 
-	UPROPERTY(EditAnywhere)
+	
+
+	UPROPERTY(EditAnywhere, Category="Debug")
 	FColor DrawLinesColor;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Grid")
+	FIntVector GridSize;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Grid")
 	FTilesGrid Grid;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Debug")
+	FIntVector TestRouteStart;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Debug")
+	FIntVector TestRouteFinish;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Debug")
+	TArray<FIntVector> TestRoute;
+
+	UPROPERTY(EditAnywhere, Category="Debug")
+	UClass* SplineActorClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Debug")
+	ASplineActor* TestSplineInstance;
 
 	ARoadsGameModeBase();
 
-	virtual void BeginPlay() override;
+	virtual bool ShouldTickIfViewportsOnly() const override;
 
 	virtual void Tick(float DeltaSeconds) override;
 
-	virtual bool ShouldTickIfViewportsOnly() const override;
+protected:
+	virtual void BeginPlay() override;
 
-private:
+private:	
 	void DrawTileDirections() const;
 	void DrawJunctions() const;
 	void DrawLines() const;
+	void BuildTestRoute();
 };
 
 
