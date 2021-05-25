@@ -1,66 +1,37 @@
-﻿#pragma once
-#include "GridJunction.h"
-#include "GridLine.h"
+﻿// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "UObject/Object.h"
+
 #include "GridTile.h"
+#include "TilesGridBuilder.h"
 
 #include "TilesGrid.generated.h"
 
-USTRUCT(BlueprintType)
-struct MARKETPLACECONTENT_API FTilesGrid
+/**
+ * 
+ */
+UCLASS(BlueprintType)
+class MARKETPLACECONTENT_API UTilesGrid final : public UObject
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
-	FIntVector GridSize;
+    FIntVector TileSize;
+    TMap<FIntVector, FGridTile> Tiles;
+    
+    public:
 
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
-	TMap<FIntVector, FGridTile> TileById;
+    void SetupWith(FTilesGridBuilder& GridBuilder)
+    {
+        TileSize = GridBuilder.TileSize;
+        Tiles = GridBuilder.GetTilesMap();
+    }
 
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
-	TArray<FGridJunction> Junctions;
+    UFUNCTION(BlueprintCallable, BlueprintPure)
+    const FGridTile& GetTile(const FIntVector TileId) { return Tiles[TileId]; }
 
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
-	TArray<FGridLine> Lines;
-
-	FTilesGrid();
-
-	FORCEINLINE const TMap<FIntVector, FGridTile>& GetTilesMap() const
-	{
-		return TileById;
-	}
-	
-	FORCEINLINE const TArray<FGridJunction>& GetJunctions() const
-	{
-		return Junctions;
-	}
-	
-	FORCEINLINE const TArray<FGridLine>& GetLines() const
-	{
-		return Lines;
-	}		
-
-	FORCEINLINE bool IsJunctionTile(const FGridTile& Tile) const
-	{
-		return Junctions.FindByPredicate([&](const FGridJunction j){return j.Contains(Tile);});
-	}
-
-	FORCEINLINE bool ContainsTile(const FIntVector& TileId) const
-	{
-		return TileById.Contains(TileId);
-	}	
-
-	FGridTile& GetTile(const FIntVector& TileId)
-	{
-		return TileById[TileId];
-	}
-
-	void BuildGrid(UWorld* World);
-
-private:
-	void CreateTiles(UWorld* World);
-	void CreateJunctions(const TArray<FGridTile>& Tiles);
-	void SimplifyTileDirections(const TArray<FGridTile>& Tiles);
-	void CreateLines(const TArray<FGridTile>& Tiles);
-	void SimplifyJunctions(const TArray<FGridTile>& Tiles);
-	void CreateDirections(const TArray<FGridTile>& Tiles);
+    UFUNCTION(BlueprintCallable, BlueprintPure)
+    FVector GetTileLocation(const FIntVector TileId) const { return FGridMath::ToTileCenterLocation(TileId, TileSize); }
 };

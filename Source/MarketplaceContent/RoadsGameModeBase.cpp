@@ -6,12 +6,11 @@
 
 #include "DrawDebugHelpers.h"
 #include "EngineUtils.h"
-#include "GridMath.h"
 #include "GridDirections.h"
 #include "GridJunction.h"
 #include "GridLine.h"
+#include "GridMath.h"
 #include "GridPathfinder.h"
-#include "GridPathfinderCost.h"
 #include "GridTile.h"
 #include "SplineActor.h"
 
@@ -20,8 +19,8 @@ ARoadsGameModeBase::ARoadsGameModeBase()
 	PrimaryActorTick.bStartWithTickEnabled = true;
 	PrimaryActorTick.bCanEverTick = true;
 	
-	Grid = FTilesGrid();
-	GridSize = FIntVector(500, 500, 1);
+	Grid = FTilesGridBuilder();
+	TileSize = FIntVector(500, 500, 1);
 
 	DrawTileDirectionsEnabled = true;
 	DrawTileDirectionsColor = FColor::Green;
@@ -35,7 +34,7 @@ ARoadsGameModeBase::ARoadsGameModeBase()
 
 void ARoadsGameModeBase::BeginPlay()
 {
-	Grid.GridSize = GridSize;
+	Grid.TileSize = TileSize;
 	Grid.BuildGrid(GetWorld());
 
 	BuildTestRoute();
@@ -50,15 +49,20 @@ void ARoadsGameModeBase::BeginPlay()
 	FVector Offset = FVector(0,0,50);
 	for (const FIntVector TileId : TestRoute)
 	{
-		Points.Add(FGridMath::ToTileCenterLocation(TileId, Grid.GridSize) + Offset);
+		Points.Add(FGridMath::ToTileCenterLocation(TileId, Grid.TileSize) + Offset);
 	}
 
 	 TestSplineInstance->PopulatePoints(Points);
-	
-	auto pawn = GetWorld()->GetFirstPlayerController()->GetPawn();
-	pawn->SetActorLocation(FGridMath::ToTileCenterLocation(TestRouteStart, Grid.GridSize));
 
-	TestSplineInstance->SetActor(pawn);
+	APawn* Pawn = GetWorld()->GetFirstPlayerController()->GetPawn();
+	if(!IsValid(Pawn))
+	{
+		return;
+	}
+	
+	Pawn->SetActorLocation(FGridMath::ToTileCenterLocation(TestRouteStart, Grid.TileSize), false, nullptr, ETeleportType::ResetPhysics);
+
+	TestSplineInstance->SetActor(Pawn);
 }
 
 void ARoadsGameModeBase::Tick(float DeltaSeconds)
@@ -78,11 +82,11 @@ void ARoadsGameModeBase::Tick(float DeltaSeconds)
 		DrawLines();
 	}
 
-	FIntVector TileCenter = FGridMath::ToTileCenter(TestRouteStart, Grid.GridSize);
+	FIntVector TileCenter = FGridMath::ToTileCenter(TestRouteStart, Grid.TileSize);
 	FVector MarkerPosition = FVector(TileCenter.X, TileCenter.Y, 50);
 	DrawDebugSphere(GetWorld(), MarkerPosition, 60, 8, FColor::Red);
 
-	TileCenter = FGridMath::ToTileCenter(TestRouteFinish, Grid.GridSize);
+	TileCenter = FGridMath::ToTileCenter(TestRouteFinish, Grid.TileSize);
 	MarkerPosition = FVector(TileCenter.X, TileCenter.Y, 50);
 	DrawDebugSphere(GetWorld(), MarkerPosition, 60, 8, FColor::Red);
 }
@@ -102,7 +106,7 @@ void ARoadsGameModeBase::DrawTileDirections() const
 	for (auto Pair : Grid.GetTilesMap())
 	{
 		const FGridTile Tile = Pair.Value;
-		const FIntVector TileCenter = FGridMath::ToTileCenter(Tile.Id, Grid.GridSize);
+		const FIntVector TileCenter = FGridMath::ToTileCenter(Tile.Id, Grid.TileSize);
 		FVector MarkerPosition = FVector(TileCenter.X, TileCenter.Y, 50);
 		if(FGridDirections::IsEmpty(Tile.LocalDirections))
 		{
@@ -153,8 +157,8 @@ void ARoadsGameModeBase::DrawJunctions() const
 #undef MAX
 		}
 
-		Min = FGridMath::ToTileCenter(Min, Grid.GridSize);
-		Max = FGridMath::ToTileCenter(Max, Grid.GridSize);
+		Min = FGridMath::ToTileCenter(Min, Grid.TileSize);
+		Max = FGridMath::ToTileCenter(Max, Grid.TileSize);
 
 #define AVG(sym) ((Min.sym + Max.sym) / 2.0)
 		FVector Position = FVector(AVG(X), AVG(Y), AVG(Z) + 50);
@@ -168,8 +172,8 @@ void ARoadsGameModeBase::DrawLines() const
 {
 	for (FGridLine Line : Grid.GetLines())
 	{
-		FVector Start = FGridMath::ToTileCenterLocation(Line.Min, Grid.GridSize);
-		FVector End = FGridMath::ToTileCenterLocation(Line.Max, Grid.GridSize);
+		FVector Start = FGridMath::ToTileCenterLocation(Line.Min, Grid.TileSize);
+		FVector End = FGridMath::ToTileCenterLocation(Line.Max, Grid.TileSize);
 
 		Start.Z = 50;
 		End.Z = 50;

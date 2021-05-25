@@ -3,10 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
 #include "Chaos/AABBTree.h"
 #include "UObject/NoExportTypes.h"
-#include "EDirections.h"
+
 #include "GridMath.h"
 #include "GridDirections.h"
 

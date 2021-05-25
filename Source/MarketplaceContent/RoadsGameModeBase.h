@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 
 
-#include "TilesGrid.h"
+#include "TilesGridBuilder.h"
 #include "GridJunction.h"
 #include "GridLine.h"
 #include "GridTile.h"
@@ -44,10 +44,10 @@ public:
 	FColor DrawLinesColor;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Grid")
-	FIntVector GridSize;
+	FIntVector TileSize;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Grid")
-	FTilesGrid Grid;
+	FTilesGridBuilder Grid;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Debug")
 	FIntVector TestRouteStart;

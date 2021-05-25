@@ -27,38 +27,38 @@ public:
 			FMath::RoundToInt(Vector.Z));
 	}
 
-	static FORCEINLINE FIntVector ToTileId(const FVector ActorCenter, const FIntVector GridSize)
+	static FORCEINLINE FIntVector ToTileId(const FVector ActorCenter, const FIntVector TileSize)
 	{
-#define CALC(component) ((FMath::RoundToInt(ActorCenter.component) - GridSize.component / 2) / GridSize.component)
+#define CALC(component) ((FMath::RoundToInt(ActorCenter.component) - TileSize.component / 2) / TileSize.component)
 				
-		return FIntVector(CALC(X), CALC(Y), FMath::RoundToInt(ActorCenter.Z) / GridSize.Z);
+		return FIntVector(CALC(X), CALC(Y), FMath::RoundToInt(ActorCenter.Z) / TileSize.Z);
 
 #undef  CALC
 	}	
 
-	static FORCEINLINE FIntVector ToTileId(const FIntVector TileCenter, const FIntVector GridSize)
+	static FORCEINLINE FIntVector ToTileId(const FIntVector TileCenter, const FIntVector TileSize)
 	{
-#define CALC(component) ((TileCenter.component - GridSize.component / 2) / GridSize.component)
+#define CALC(component) ((TileCenter.component - TileSize.component / 2) / TileSize.component)
 				
-		return FIntVector(CALC(X), CALC(Y), TileCenter.Z / GridSize.Z);
+		return FIntVector(CALC(X), CALC(Y), TileCenter.Z / TileSize.Z);
 
 #undef  CALC
 	}
 
-	static FORCEINLINE FIntVector ToTileCenter(const FIntVector TileId, const FIntVector GridSize)
+	static FORCEINLINE FIntVector ToTileCenter(const FIntVector TileId, const FIntVector TileSize)
 	{
-#define CALC(component) ((TileId.component * GridSize.component) + GridSize.component / 2)
+#define CALC(component) ((TileId.component * TileSize.component) + TileSize.component / 2)
 		
-		return  FIntVector(CALC(X), CALC(Y), TileId.Z * GridSize.Z);
+		return  FIntVector(CALC(X), CALC(Y), TileId.Z * TileSize.Z);
 
 #undef CALC
 	}
 
-	static FORCEINLINE FVector ToTileCenterLocation(const FIntVector TileId, const FIntVector GridSize, const float MulZ = 1.f)
+	static FORCEINLINE FVector ToTileCenterLocation(const FIntVector TileId, const FIntVector TileSize, const float MulZ = 1.f)
 	{
-#define CALC(component) ((TileId.component * GridSize.component) + GridSize.component / 2)
+#define CALC(component) ((TileId.component * TileSize.component) + TileSize.component / 2)
 		
-		return  FVector(CALC(X), CALC(Y), TileId.Z * GridSize.Z * MulZ);
+		return  FVector(CALC(X), CALC(Y), TileId.Z * TileSize.Z * MulZ);
 
 #undef CALC
 	}

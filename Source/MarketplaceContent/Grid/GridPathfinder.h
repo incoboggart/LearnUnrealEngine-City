@@ -7,7 +7,7 @@
 #include "GridPathfinderCost.h"
 #include "GridPathfinderNode.h"
 #include "MarketplaceContent.h"
-#include "TilesGrid.h"
+#include "TilesGridBuilder.h"
 #include "GridPathfinder.generated.h"
 
 /**
@@ -30,7 +30,7 @@ struct MARKETPLACECONTENT_API FGridPathfinder
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Params")
     int32 DiagCost = 14;
 
-    bool FindPath(FTilesGrid& Grid, TArray<FIntVector>& OutPath) const
+    bool FindPath(FTilesGridBuilder& Grid, TArray<FIntVector>& OutPath) const
     {
         if(!Grid.ContainsTile(Start)
             || !Grid.ContainsTile(Finish))
