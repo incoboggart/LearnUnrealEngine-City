@@ -49,6 +49,11 @@ void ARoadsGameModeBase::BeginPlay()
 	FVector Offset = FVector(0,0,50);
 	for (const FIntVector TileId : TestRoute)
 	{
+		if(Grid.GetTile(TileId).IsOrthoTurn())
+		{
+			continue;
+		}
+			
 		Points.Add(FGridMath::ToTileCenterLocation(TileId, Grid.TileSize) + Offset);
 	}
 
